@@ -11,9 +11,10 @@
             theme: {
                 extend: {
                     colors: {
-                        dark: '#120b09',
-                        primary: '#ff4e00',
-                        secondary: '#d92b00',
+                        dark: '#000000',
+                        primary: '#FF0000',    /* أحمر */
+                        secondary: '#FFD700',  /* أصفر */
+                        accent: '#FFFFFF',     /* أبيض */
                     },
                     fontFamily: { sans: ['Poppins', 'sans-serif'] }
                 }
@@ -21,198 +22,162 @@
         }
     </script>
     <style>
-        /* Warm & Dark Theme Variables */
         :root {
-            --glass-bg: rgba(255, 78, 0, 0.05);
-            --glass-border: rgba(255, 78, 0, 0.2);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
         }
 
         body {
-            background-color: theme('colors.dark');
+            background-color: #000000;
             color: #fff;
             overflow-x: hidden;
         }
 
-        /* Glassmorphism Utilities */
         .glass {
             background: var(--glass-bg);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
             border-radius: 1rem;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        /* Registration Modal Lock */
-        body.modal-open { overflow: hidden; }
-        
-        #registration-modal {
-            transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        
-        .modal-hide {
-            opacity: 0 !important;
-            transform: scale(1.1) !important;
-            pointer-events: none;
+        /* Modal Image Zoom */
+        #image-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
         }
 
-        /* Animations */
-        .fade-in { opacity: 0; transform: translateY(30px); transition: all 0.8s ease-out; }
-        .fade-in.visible { opacity: 1; transform: translateY(0); }
+        #image-overlay img {
+            max-width: 90%;
+            max-height: 90%;
+            border: 4px solid #FFD700;
+            border-radius: 10px;
+        }
 
-        .ripple {
+        /* Square Menu Cards */
+        .menu-card {
+            aspect-ratio: 1 / 1;
             position: relative;
             overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease;
         }
-        .ripple::after {
-            content: "";
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 200%; padding-top: 200%;
-            background: rgba(255,255,255,0.2);
-            border-radius: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            transition: transform 0.5s ease-out;
-        }
-        .ripple:active::after { transform: translate(-50%, -50%) scale(1); transition: 0s; }
+        .menu-card:hover { transform: scale(1.03); }
+        .menu-card img { width: 100%; height: 100%; object-cover: cover; }
 
-        /* Hover & Tilt Effects */
-        .menu-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            transform-style: preserve-3d;
-        }
-        .menu-card:hover {
-            transform: translateY(-10px) rotateX(2deg) rotateY(2deg);
-            box-shadow: 0 20px 40px rgba(255, 78, 0, 0.2);
-        }
-        
-        .img-container img { transition: transform 0.6s ease, filter 0.6s ease; filter: blur(2px); }
-        .img-container.loaded img { filter: blur(0); }
-        .menu-card:hover .img-container img { transform: scale(1.1); }
+        body.modal-open { overflow: hidden; }
+        .modal-hide { opacity: 0 !important; transform: scale(1.1) !important; pointer-events: none; }
 
-        /* Sticky Nav Transition */
-        nav { transition: all 0.4s ease; }
-        nav.scrolled { background: rgba(18, 11, 9, 0.9); backdrop-filter: blur(10px); padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .fade-in { opacity: 0; transform: translateY(20px); transition: all 0.6s ease-out; }
+        .fade-in.visible { opacity: 1; transform: translateY(0); }
 
-        /* Custom Scrollbar for Visitors Table */
-        .table-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
-        .table-scroll::-webkit-scrollbar-track { background: var(--glass-bg); border-radius: 8px; }
-        .table-scroll::-webkit-scrollbar-thumb { background: theme('colors.primary'); border-radius: 8px; }
-
-        /* Floating Particles / Elements */
-        .particle {
-            position: absolute;
-            background: linear-gradient(45deg, theme('colors.primary'), theme('colors.secondary'));
-            border-radius: 50%;
-            filter: blur(4px);
-            animation: float 10s infinite alternate ease-in-out;
-            opacity: 0.2;
-            z-index: -1;
+        /* Custom Table Style */
+        .visitor-table {
+            background-color: #000000 !important;
+            color: #FFFFFF !important;
+            border: 1px solid #333;
         }
-        @keyframes float {
-            0% { transform: translateY(0) scale(1); }
-            100% { transform: translateY(-50px) scale(1.2); }
-        }
+        .visitor-table th { color: #FFD700; border-bottom: 2px solid #FF0000; }
+        .visitor-table td { border-bottom: 1px solid #222; }
     </style>
 </head>
 <body class="modal-open relative antialiased">
 
-    <div id="registration-modal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-dark/95 backdrop-blur-xl opacity-100 transform scale-100">
-        <div class="glass p-10 md:p-14 w-[90%] max-w-md text-center shadow-2xl">
-            <h2 class="text-3xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Bienvenue!</h2>
-            <p class="text-gray-400 mb-8 text-sm">Veuillez vous enregistrer pour accéder au site.</p>
+    <div id="image-overlay" onclick="this.style.display='none'">
+        <img id="overlay-img" src="" alt="Zoom">
+    </div>
+
+    <div id="registration-modal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-xl opacity-100 transform scale-100">
+        <div class="glass p-10 w-[90%] max-w-md text-center border-primary shadow-2xl">
+            <h2 class="text-3xl font-bold mb-2 text-secondary">Bienvenue!</h2>
+            <p class="text-white mb-8 text-sm">Veuillez vous enregistrer pour accéder au site.</p>
             <form id="reg-form" class="flex flex-col gap-4">
-                <input type="text" id="fname" placeholder="Prénom (First Name)" required class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-primary transition-colors">
-                <input type="text" id="lname" placeholder="Nom (Last Name)" required class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-primary transition-colors">
-                <button type="submit" class="mt-4 bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-primary text-white font-bold py-3 px-6 rounded-lg ripple transition-transform hover:scale-105">
+                <input type="text" id="fname" placeholder="Prénom" required class="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white focus:border-secondary outline-none">
+                <input type="text" id="lname" placeholder="Nom" required class="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white focus:border-secondary outline-none">
+                <button type="submit" class="mt-4 bg-primary hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105">
                     Entrer au Restaurant
                 </button>
             </form>
         </div>
     </div>
 
-    <nav id="navbar" class="fixed w-full z-50 py-5 transition-all duration-300">
+    <nav id="navbar" class="fixed w-full z-50 py-4 bg-black/80 backdrop-blur-md border-b border-primary/30">
         <div class="container mx-auto px-6 flex justify-between items-center">
             <div class="text-2xl font-bold tracking-wider text-white">Le <span class="text-primary">Délice</span></div>
             <div class="hidden md:flex gap-8 font-semibold">
-                <a href="#hero" class="hover:text-primary transition-colors relative group">Accueil<span class="absolute -bottom-1 left-0 w-0 h-[2px] bg-primary transition-all group-hover:w-full"></span></a>
-                <a href="#menu" class="hover:text-primary transition-colors relative group">Menu<span class="absolute -bottom-1 left-0 w-0 h-[2px] bg-primary transition-all group-hover:w-full"></span></a>
-                <a href="#visitors" class="hover:text-primary transition-colors relative group">Visiteurs<span class="absolute -bottom-1 left-0 w-0 h-[2px] bg-primary transition-all group-hover:w-full"></span></a>
+                <a href="#hero" class="hover:text-secondary text-white transition-colors">Accueil</a>
+                <a href="#menu" class="hover:text-secondary text-white transition-colors">Menu</a>
+                <a href="#visitors" class="hover:text-secondary text-white transition-colors">Visiteurs</a>
             </div>
-            <a href="tel:+212655628685" class="glass px-4 py-2 text-sm font-bold text-primary hover:bg-primary hover:text-white transition-colors">
+            <a href="tel:+212655628685" class="bg-secondary text-black px-4 py-2 rounded-full font-bold text-sm hover:bg-white transition-colors">
                 +212 655 628 685
             </a>
         </div>
-        <div id="scroll-progress" class="h-1 bg-primary w-0 absolute bottom-0 left-0"></div>
     </nav>
 
-    <section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=2000')] bg-cover bg-center bg-fixed opacity-20"></div>
-        <div class="absolute inset-0 bg-gradient-to-t from-dark via-dark/60 to-transparent"></div>
-        
-        <div class="particle w-32 h-32 top-20 left-20"></div>
-        <div class="particle w-48 h-48 bottom-40 right-20" style="animation-delay: 2s;"></div>
-
+    <section id="hero" class="relative min-h-screen flex items-center justify-center pt-20">
+        <div class="absolute inset-0 bg-gradient-to-b from-red-900/20 to-black"></div>
         <div class="relative z-10 text-center px-4 max-w-4xl mx-auto fade-in">
-            <p class="text-primary font-bold tracking-widest uppercase mb-4">Tarfaya, Morocco</p>
-            <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+            <h1 class="text-5xl md:text-7xl font-bold mb-6 text-white">
                 Snack Restaurant <br>
-                <span id="typing-text" class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-yellow-500 border-r-4 border-primary pr-2"></span>
+                <span id="typing-text" class="text-secondary"></span>
             </h1>
-            <p class="text-lg md:text-xl text-gray-300 mb-10">Fast Food & Plats Locaux</p>
-            <a href="#menu" class="inline-block bg-primary text-white font-bold py-4 px-10 rounded-full shadow-[0_0_20px_rgba(255,78,0,0.5)] hover:shadow-[0_0_30px_rgba(255,78,0,0.8)] transition-all ripple hover:-translate-y-1">
+            <p class="text-lg text-gray-300 mb-10 uppercase tracking-widest">Tarfaya - Fast Food & Plats Locaux</p>
+            <a href="#menu" class="bg-primary text-white font-bold py-4 px-10 rounded-full shadow-lg hover:bg-white hover:text-primary transition-all">
                 Découvrir le Menu
             </a>
         </div>
     </section>
 
-    <section id="menu" class="py-24 relative z-10">
+    <section id="menu" class="py-24 relative z-10 bg-black">
         <div class="container mx-auto px-6">
             <div class="text-center mb-16 fade-in">
-                <h2 class="text-4xl font-bold mb-4">Notre <span class="text-primary">Menu</span></h2>
-                <div class="w-20 h-1 bg-primary mx-auto rounded"></div>
+                <h2 class="text-4xl font-bold mb-4 text-white">Notre <span class="text-primary">Menu</span></h2>
+                <div class="w-20 h-1 bg-secondary mx-auto rounded"></div>
             </div>
 
-            <div class="flex flex-wrap justify-center gap-4 mb-12 fade-in" id="menu-tabs">
-            </div>
+            <div class="flex flex-wrap justify-center gap-3 mb-12 fade-in" id="menu-tabs"></div>
 
-            <div id="menu-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            </div>
+            <div id="menu-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                </div>
         </div>
     </section>
 
-    <section id="visitors" class="py-24 bg-dark/50 relative z-10">
+    <section id="visitors" class="py-24 bg-black relative z-10">
         <div class="container mx-auto px-6">
             <div class="text-center mb-16 fade-in">
-                <h2 class="text-4xl font-bold mb-4">Liste des <span class="text-primary">Visiteurs</span></h2>
-                <p class="text-gray-400">Rejoignez notre communauté en direct (Dernières 24 Heures).</p>
+                <h2 class="text-4xl font-bold mb-4 text-white">Liste des <span class="text-secondary">Visiteurs</span></h2>
+                <p class="text-gray-400">Dernières 24 Heures</p>
             </div>
 
-            <div class="glass max-w-5xl mx-auto p-6 fade-in">
-                <div class="overflow-x-auto table-scroll">
-                    <table class="w-full text-left border-collapse">
+            <div class="max-w-5xl mx-auto overflow-hidden rounded-xl border border-zinc-800 fade-in">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse visitor-table">
                         <thead>
-                            <tr class="border-b border-white/10 text-primary">
+                            <tr class="bg-zinc-900">
                                 <th class="p-4 font-semibold">Prénom</th>
                                 <th class="p-4 font-semibold">Nom</th>
                                 <th class="p-4 font-semibold">Date</th>
                                 <th class="p-4 font-semibold">Heure</th>
                             </tr>
                         </thead>
-                        <tbody id="visitor-list" class="divide-y divide-white/5">
-                        </tbody>
+                        <tbody id="visitor-list"></tbody>
                     </table>
                 </div>
             </div>
         </div>
     </section>
 
-    <footer class="glass mt-12 py-8 text-center border-b-0 border-x-0 rounded-none rounded-t-3xl">
-        <p class="text-gray-400">© 2026 Snack Restaurant Le Délice. Tarfaya, Morocco.</p>
+    <footer class="py-8 text-center border-t border-zinc-800 bg-black">
+        <p class="text-gray-500">© 2026 Snack Restaurant Le Délice. Tarfaya, Morocco.</p>
     </footer>
 
     <script type="module">
-        // --- FIREBASE INITIALIZATION (v10 Modular SDK) ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, serverTimestamp, query, where, onSnapshot, orderBy, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
@@ -228,12 +193,12 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- DATA ---
+        // --- MENU DATA ---
         const menuData = [
             { cat: 'PLAT', name: 'Un quart de poulet', img: 'https://i.postimg.cc/tRnnhyz8/cuisses-de-poulet-a-la-portugaise.jpg' },
             { cat: 'PLAT', name: 'Un demi poulet', img: 'https://i.postimg.cc/ZRvHRStF/e1f6f1866aa0a6e03ddca1142299eb11.jpg' },
             { cat: 'PLAT', name: 'Poulet entier', img: 'https://i.postimg.cc/15mF7QCW/ba99189c664b0fcb00096921f3058fe7.jpg' },
-            { cat: 'PLAT', name: 'Plat viande hachée', img: 'https://i.postimg.cc/d1QvP4bM/bfa79fb03b876fcae15d25027092e416.jpg' },
+            { cat: 'PLAT', name: 'Plat viande Hachée', img: 'https://i.postimg.cc/d1QvP4bM/bfa79fb03b876fcae15d25027092e416.jpg' },
             { cat: 'PLAT', name: 'Plat dinde', img: 'https://i.postimg.cc/xjhrtfTp/b010a3bb5961a0e06c7fbff488b1d552.jpg' },
             { cat: 'PLAT', name: 'Plat escalope', img: 'https://i.postimg.cc/7ZMkZMB3/c59da2f6826be3799d71c69a55f0b642.jpg' },
             { cat: 'PLAT', name: 'Plat saucisse', img: 'https://i.postimg.cc/rwpBqXrw/6fab3c2b72b27380e1af24692888c5ee.jpg' },
@@ -244,12 +209,12 @@
             { cat: 'TACOS', name: 'Tacos mixte', img: 'https://i.postimg.cc/qq1NShYF/7c16ad2874bff5b81c70eba85695942d.jpg' },
             { cat: 'TACOS', name: 'Tacos charcuterie', img: 'https://i.postimg.cc/vBNRKGh8/15724c6ae1cb8007a5837feb73073c8e.jpg' },
             { cat: 'SALADE', name: 'Salade marocaine', img: 'https://i.postimg.cc/tC1ZNbtc/salade-marocaine-vegetarienne-640x480-1.jpg' },
-            { cat: 'SALADE', name: 'Salade niçoise', img: 'https://i.postimg.cc/Yqk9f3vT/bf0052b6e6b41589ea24690cdee5d9b0.jpg' },
+            { cat: 'SALADE', name: 'Salade nescoise', img: 'https://i.postimg.cc/Yqk9f3vT/bf0052b6e6b41589ea24690cdee5d9b0.jpg' },
             { cat: 'SALADE', name: 'Salade de chef', img: 'https://i.postimg.cc/ncRJjYB2/3714760464ae47708edb4e60559867df.jpg' },
-            { cat: 'COSAMIA', name: 'Cosamia poulet', img: 'https://i.postimg.cc/2yNxYFhN/02726ff131ba00c262f4be0201e2e948.jpg' },
-            { cat: 'COSAMIA', name: 'Cosamia viande hachée', img: 'https://i.postimg.cc/2yNxYFhN/02726ff131ba00c262f4be0201e2e948.jpg' },
-            { cat: 'COSAMIA', name: 'Cosamia mixte', img: 'https://i.postimg.cc/HL7sffmg/In-Shot-20260219-142010797.jpg' },
-            { cat: 'COSAMIA', name: 'Cosamia charcuterie', img: 'https://i.postimg.cc/pTRbq7X4/In-Shot-20260219-142159962.jpg' },
+            { cat: 'COSAMIA', name: 'Poulet', img: 'https://i.postimg.cc/2yNxYFhN/02726ff131ba00c262f4be0201e2e948.jpg' },
+            { cat: 'COSAMIA', name: 'Viande hachée', img: 'https://i.postimg.cc/2yNxYFhN/02726ff131ba00c262f4be0201e2e948.jpg' },
+            { cat: 'COSAMIA', name: 'Mixte', img: 'https://i.postimg.cc/HL7sffmg/In-Shot-20260219-142010797.jpg' },
+            { cat: 'COSAMIA', name: 'Charcuterie', img: 'https://i.postimg.cc/pTRbq7X4/In-Shot-20260219-142159962.jpg' },
             { cat: 'SANDWICH', name: 'Sandwich saucisse', img: 'https://i.postimg.cc/PqPscZmQ/6bcaa7b9c933da8ed954d924e2398706.jpg' },
             { cat: 'SANDWICH', name: 'Sandwich poulet', img: 'https://i.postimg.cc/NMXFHLf3/3e0515b662fad4afcc7392c6a107daad.jpg' },
             { cat: 'SANDWICH', name: 'Sandwich escalope', img: 'https://i.postimg.cc/MpXWBXsx/In-Shot-20260219-162338831.jpg' },
@@ -260,25 +225,23 @@
             { cat: 'PIZZA', name: 'Pizza poulet', img: 'https://i.postimg.cc/65dhJLnv/Pizza-au-poulet-barbecue.jpg' },
             { cat: 'PIZZA', name: 'Pizza fruit de mer', img: 'https://i.postimg.cc/7LczTfSP/pizza-aux-fruits-de-mer.jpg' },
             { cat: 'PIZZA', name: 'Pizza 4 saison', img: 'https://i.postimg.cc/DzgXBxVX/4-saisons-decoupe-mosaique-pizza.jpg' },
-            { cat: 'PIZZA', name: 'Pizza margarita', img: 'https://i.postimg.cc/854xkQq2/ed3fcec7-7994-426d-a5e4-a24be5a95afd-pizza-recipe-main-(1).jpg' },
+            { cat: 'PIZZA', name: 'Pizza marguarita', img: 'https://i.postimg.cc/854xkQq2/ed3fcec7-7994-426d-a5e4-a24be5a95afd-pizza-recipe-main-(1).jpg' },
             { cat: 'PIZZA', name: 'Pizza vegetarian', img: 'https://i.postimg.cc/g2bs7t7M/Vegetarian-Pizza-with-Caramelized-Onions-Mushrooms-Jalapeno-FI.jpg' },
             { cat: 'PIZZA', name: 'Pizza thon', img: 'https://i.postimg.cc/WzFR5Yy4/pizza-thon-creme-fraiche-500x500.jpg' },
             { cat: 'BURGER', name: 'Burger poulet', img: 'https://i.postimg.cc/J7S4mkZN/LUMA-rezept-crispy-chicken-burger-007-1.jpg' },
-            { cat: 'BURGER', name: 'Classique burger', img: 'https://i.postimg.cc/13sS5ctG/i91705-hamburger.jpg' },
+            { cat: 'BURGER', name: 'Classique Burger', img: 'https://i.postimg.cc/13sS5ctG/i91705-hamburger.jpg' },
             { cat: 'BURGER', name: 'Burger mixte', img: 'https://i.postimg.cc/3wqzpgKP/burger-mixte-boeuf-poulet-pane-double-fromage-cheddar-roquette-mayonnaise-tranches-tomates-frites-44.jpg' },
-            { cat: 'SPÉCIAL', name: 'Couscous (chaque vendredi)', img: 'https://i.postimg.cc/Dy5jLq6d/Couscous-530x-2x-1.jpg' }
+            { cat: 'SPÉCIAL', name: 'Couscous chaque vendredi', img: 'https://i.postimg.cc/Dy5jLq6d/Couscous-530x-2x-1.jpg' }
         ];
 
         const categories = ['TOUT', 'PLAT', 'TACOS', 'SALADE', 'COSAMIA', 'SANDWICH', 'PIZZA', 'BURGER', 'SPÉCIAL'];
 
-        // --- REGISTRATION SYSTEM ---
+        // --- FIREBASE LOGIC ---
         const modal = document.getElementById('registration-modal');
         const form = document.getElementById('reg-form');
         const tbody = document.getElementById('visitor-list');
 
-        // Check if user has already registered using LocalStorage
-        const hasRegistered = localStorage.getItem('hasRegisteredLeDelice');
-        if (hasRegistered === 'true') {
+        if (localStorage.getItem('registeredDelice') === 'true') {
             modal.style.display = 'none';
             document.body.classList.remove('modal-open');
         }
@@ -287,167 +250,105 @@
             e.preventDefault();
             const fname = document.getElementById('fname').value;
             const lname = document.getElementById('lname').value;
-            const submitBtn = form.querySelector('button[type="submit"]');
-            
-            submitBtn.textContent = 'Connexion...';
-            submitBtn.disabled = true;
-            
+
             try {
-                // Add visitor to Firestore with server timestamp
                 await addDoc(collection(db, "visitors"), {
-                    fname: fname,
-                    lname: lname,
-                    timestamp: serverTimestamp()
+                    fname, lname, timestamp: serverTimestamp()
                 });
-                
-                // Set LocalStorage so they are not bothered again
-                localStorage.setItem('hasRegisteredLeDelice', 'true');
-                
-                // Fade + Scale Out Animation
+                localStorage.setItem('registeredDelice', 'true');
                 modal.classList.add('modal-hide');
                 setTimeout(() => {
-                    document.body.classList.remove('modal-open');
                     modal.style.display = 'none';
+                    document.body.classList.remove('modal-open');
                 }, 600);
-            } catch (error) {
-                console.error("Error adding document: ", error);
-                submitBtn.textContent = 'Erreur. Réessayer.';
-                submitBtn.disabled = false;
-            }
+            } catch (err) { console.error(err); }
         });
 
-        // --- 24-HOUR REAL-TIME TABLE SYSTEM ---
-        const visitorsRef = collection(db, "visitors");
-        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-
-        // Query: Only visitors from the last 24 hours, ordered newest to oldest
         const q = query(
-            visitorsRef, 
-            where("timestamp", ">=", Timestamp.fromDate(twentyFourHoursAgo)),
+            collection(db, "visitors"),
+            where("timestamp", ">=", Timestamp.fromDate(new Date(Date.now() - 24 * 60 * 60 * 1000))),
             orderBy("timestamp", "desc")
         );
 
         onSnapshot(q, (snapshot) => {
             tbody.innerHTML = '';
-            let index = 0;
-            
-            snapshot.forEach((doc) => {
-                const v = doc.data();
-                
-                // Handle pending writes where serverTimestamp hasn't resolved yet
-                const jsDate = v.timestamp ? v.timestamp.toDate() : new Date();
-                
-                const dateStr = jsDate.toLocaleDateString('fr-FR');
-                const timeStr = jsDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute:'2-digit', second:'2-digit' });
-
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const date = data.timestamp ? data.timestamp.toDate() : new Date();
                 const tr = document.createElement('tr');
-                tr.className = `hover:bg-white/5 transition-colors duration-300 fade-in visible`;
-                tr.style.animationDelay = `${index * 0.1}s`;
                 tr.innerHTML = `
-                    <td class="p-4 border-b border-white/5">${v.fname}</td>
-                    <td class="p-4 border-b border-white/5">${v.lname}</td>
-                    <td class="p-4 border-b border-white/5">${dateStr}</td>
-                    <td class="p-4 border-b border-white/5">${timeStr}</td>
+                    <td class="p-4">${data.fname}</td>
+                    <td class="p-4">${data.lname}</td>
+                    <td class="p-4">${date.toLocaleDateString('fr-FR')}</td>
+                    <td class="p-4">${date.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})}</td>
                 `;
                 tbody.appendChild(tr);
-                index++;
             });
         });
 
-        // --- MENU SYSTEM ---
+        // --- MENU UI ---
         const menuTabs = document.getElementById('menu-tabs');
         const menuGrid = document.getElementById('menu-grid');
+        const overlay = document.getElementById('image-overlay');
+        const overlayImg = document.getElementById('overlay-img');
 
-        function renderTabs() {
-            categories.forEach(cat => {
-                const btn = document.createElement('button');
-                btn.className = `px-6 py-2 rounded-full font-semibold transition-all duration-300 ${cat === 'TOUT' ? 'bg-primary text-white shadow-lg shadow-primary/40' : 'glass text-gray-300 hover:text-white hover:bg-white/10'}`;
-                btn.textContent = cat;
-                btn.onclick = () => filterMenu(cat, btn);
-                menuTabs.appendChild(btn);
-            });
+        function openImage(src) {
+            overlayImg.src = src;
+            overlay.style.display = 'flex';
         }
 
-        function filterMenu(filterCat, activeBtn) {
-            Array.from(menuTabs.children).forEach(btn => {
-                btn.className = 'px-6 py-2 rounded-full font-semibold transition-all duration-300 glass text-gray-300 hover:text-white hover:bg-white/10';
-            });
-            activeBtn.className = 'px-6 py-2 rounded-full font-semibold transition-all duration-300 bg-primary text-white shadow-lg shadow-primary/40';
-
+        function renderMenu(filter = 'TOUT') {
             menuGrid.innerHTML = '';
-            const filtered = filterCat === 'TOUT' ? menuData : menuData.filter(item => item.cat === filterCat);
+            const filtered = filter === 'TOUT' ? menuData : menuData.filter(i => i.cat === filter);
             
-            filtered.forEach((item, index) => {
-                const card = document.createElement('div');
-                card.className = 'menu-card glass rounded-2xl overflow-hidden opacity-0 transform translate-y-10';
-                card.style.transition = `all 0.5s ease ${index * 0.05}s`;
-                
-                card.innerHTML = `
-                    <div class="h-48 overflow-hidden relative img-container">
-                        <img src="${item.img}" alt="${item.name}" class="w-full h-full object-cover" onload="this.parentElement.classList.add('loaded')">
-                        <div class="absolute inset-0 bg-gradient-to-t from-dark/90 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                            <span class="text-xs font-bold bg-primary px-2 py-1 rounded text-white uppercase">${item.cat}</span>
-                        </div>
-                    </div>
-                    <div class="p-6">
-                        <h3 class="text-xl font-bold mb-2">${item.name}</h3>
-                        <div class="flex justify-between items-center mt-4">
-                            <button class="text-primary hover:text-white transition-colors">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                            </button>
-                        </div>
+            filtered.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'menu-card glass group';
+                div.onclick = () => openImage(item.img);
+                div.innerHTML = `
+                    <img src="${item.img}" alt="${item.name}" loading="lazy">
+                    <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-center items-center p-2 text-center">
+                        <span class="text-secondary font-bold text-xs uppercase mb-1">${item.cat}</span>
+                        <h3 class="text-white text-sm font-semibold">${item.name}</h3>
+                        <span class="text-[10px] text-gray-300 mt-2">Cliquer pour agrandir</span>
                     </div>
                 `;
-                menuGrid.appendChild(card);
-
-                setTimeout(() => {
-                    card.classList.remove('opacity-0', 'translate-y-10');
-                }, 50);
+                menuGrid.appendChild(div);
             });
         }
 
-        renderTabs();
-        filterMenu('TOUT', menuTabs.firstElementChild);
+        categories.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = `px-4 py-2 rounded-full text-xs font-bold transition-all ${cat === 'TOUT' ? 'bg-primary text-white' : 'bg-zinc-800 text-gray-400'}`;
+            btn.textContent = cat;
+            btn.onclick = () => {
+                document.querySelectorAll('#menu-tabs button').forEach(b => b.className = 'px-4 py-2 rounded-full text-xs font-bold bg-zinc-800 text-gray-400 transition-all');
+                btn.className = 'px-4 py-2 rounded-full text-xs font-bold bg-primary text-white transition-all';
+                renderMenu(cat);
+            };
+            menuTabs.appendChild(btn);
+        });
 
-        // --- GLOBAL ANIMATIONS & EFFECTS ---
-        const textToType = "Le Délice";
-        const typingElement = document.getElementById('typing-text');
+        renderMenu();
+
+        // Typing Effect
         let typeIndex = 0;
-        
-        function typeWriter() {
-            if (typeIndex < textToType.length) {
-                typingElement.innerHTML += textToType.charAt(typeIndex);
+        const text = "Le Délice";
+        function type() {
+            if (typeIndex < text.length) {
+                document.getElementById('typing-text').textContent += text[typeIndex];
                 typeIndex++;
-                setTimeout(typeWriter, 150);
-            } else {
-                typingElement.style.borderRight = "none";
+                setTimeout(type, 200);
             }
         }
-        setTimeout(typeWriter, 1000);
+        type();
 
-        const fadeElements = document.querySelectorAll('.fade-in');
-        const navbar = document.getElementById('navbar');
-        const progressBar = document.getElementById('scroll-progress');
+        // Fade in observer
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible')});
+        }, {threshold: 0.1});
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 
-        const scrollObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, { threshold: 0.1 });
-
-        fadeElements.forEach(el => scrollObserver.observe(el));
-
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) navbar.classList.add('scrolled');
-            else navbar.classList.remove('scrolled');
-
-            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            progressBar.style.width = (winScroll / height) * 100 + "%";
-        });
-        
     </script>
 </body>
 </html>

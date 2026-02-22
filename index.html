@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snack Restaurant Le Délice | Tarfaya</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#120b09',
+                        primary: '#ff4e00',
+                        secondary: '#d92b00',
+                    },
+                    fontFamily: { sans: ['Poppins', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Warm & Dark Theme Variables */
+        :root {
+            --glass-bg: rgba(255, 78, 0, 0.05);
+            --glass-border: rgba(255, 78, 0, 0.2);
+        }
+
+        body {
+            background-color: theme('colors.dark');
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* Registration Modal Lock */
+        body.modal-open { overflow: hidden; }
+        
+        #registration-modal {
+            transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .modal-hide {
+            opacity: 0 !important;
+            transform: scale(1.1) !important;
+            pointer-events: none;
+        }
+
+        /* Animations */
+        .fade-in { opacity: 0; transform: translateY(30px); transition: all 0.8s ease-out; }
+        .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple::after {
+            content: "";
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 200%; padding-top: 200%;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.5s ease-out;
+        }
+        .ripple:active::after { transform: translate(-50%, -50%) scale(1); transition: 0s; }
+
+        /* Hover & Tilt Effects */
+        .menu-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transform-style: preserve-3d;
+        }
+        .menu-card:hover {
+            transform: translateY(-10px) rotateX(2deg) rotateY(2deg);
+            box-shadow: 0 20px 40px rgba(255, 78, 0, 0.2);
+        }
+        
+        .img-container img { transition: transform 0.6s ease, filter 0.6s ease; filter: blur(2px); }
+        .img-container.loaded img { filter: blur(0); }
+        .menu-card:hover .img-container img { transform: scale(1.1); }
+
+        /* Sticky Nav Transition */
+        nav { transition: all 0.4s ease; }
+        nav.scrolled { background: rgba(18, 11, 9, 0.9); backdrop-filter: blur(10px); padding-top: 0.5rem; padding-bottom: 0.5rem; }
+
+        /* Custom Scrollbar for Visitors Table */
+        .table-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+        .table-scroll::-webkit-scrollbar-track { background: var(--glass-bg); border-radius: 8px; }
+        .table-scroll::-webkit-scrollbar-thumb { background: theme('colors.primary'); border-radius: 8px; }
+
+        /* Floating Particles / Elements */
+        .particle {
+            position: absolute;
+            background: linear-gradient(45deg, theme('colors.primary'), theme('colors.secondary'));
+            border-radius: 50%;
+            filter: blur(4px);
+            animation: float 10s infinite alternate ease-in-out;
+            opacity: 0.2;
+            z-index: -1;
+        }
+        @keyframes float {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(-50px) scale(1.2); }
+        }
+    </style>
+</head>
+<body class="modal-open relative antialiased">
+
+    <div id="registration-modal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-dark/95 backdrop-blur-xl opacity-100 transform scale-100">
+        <div class="glass p-10 md:p-14 w-[90%] max-w-md text-center shadow-2xl">
+            <h2 class="text-3xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Bienvenue!</h2>
+            <p class="text-gray-400 mb-8 text-sm">Veuillez vous enregistrer pour accéder au site.</p>
+            <form id="reg-form" class="flex flex-col gap-4">
+                <input type="text" id="fname" placeholder="Prénom (First Name)" required class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-primary transition-colors">
+                <input type="text" id="lname" placeholder="Nom (Last Name)" required class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-primary transition-colors">
+                <button type="submit" class="mt-4 bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-primary text-white font-bold py-3 px-6 rounded-lg ripple transition-transform hover:scale-105">
+                    Entrer au Restaurant
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <nav id="navbar" class="fixed w-full z-50 py-5 transition-all duration-300">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <div class="text-2xl font-bold tracking-wider text-white">Le <span class="text-primary">Délice</span></div>
+            <div class="hidden md:flex gap-8 font-semibold">
+                <a href="#hero" class="hover:text-primary transition-colors relative group">Accueil<span class="absolute -bottom-1 left-0 w-0 h-[2px] bg-primary transition-all group-hover:w-full"></span></a>
+                <a href="#menu" class="hover:text-primary transition-colors relative group">Menu<span class="absolute -bottom-1 left-0 w-0 h-[2px] bg-primary transition-all group-hover:w-full"></span></a>
+                <a href="#visitors" class="hover:text-primary transition-colors relative group">Visiteurs<span class="absolute -bottom-1 left-0 w-0 h-[2px] bg-primary transition-all group-hover:w-full"></span></a>
+            </div>
+            <a href="tel:+212655628685" class="glass px-4 py-2 text-sm font-bold text-primary hover:bg-primary hover:text-white transition-colors">
+                +212 655 628 685
+            </a>
+        </div>
+        <div id="scroll-progress" class="h-1 bg-primary w-0 absolute bottom-0 left-0"></div>
+    </nav>
+
+    <section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=2000')] bg-cover bg-center bg-fixed opacity-20"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-dark via-dark/60 to-transparent"></div>
+        
+        <div class="particle w-32 h-32 top-20 left-20"></div>
+        <div class="particle w-48 h-48 bottom-40 right-20" style="animation-delay: 2s;"></div>
+
+        <div class="relative z-10 text-center px-4 max-w-4xl mx-auto fade-in">
+            <p class="text-primary font-bold tracking-widest uppercase mb-4">Tarfaya, Morocco</p>
+            <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+                Snack Restaurant <br>
+                <span id="typing-text" class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-yellow-500 border-r-4 border-primary pr-2"></span>
+            </h1>
+            <p class="text-lg md:text-xl text-gray-300 mb-10">Fast Food & Plats Locaux</p>
+            <a href="#menu" class="inline-block bg-primary text-white font-bold py-4 px-10 rounded-full shadow-[0_0_20px_rgba(255,78,0,0.5)] hover:shadow-[0_0_30px_rgba(255,78,0,0.8)] transition-all ripple hover:-translate-y-1">
+                Découvrir le Menu
+            </a>
+        </div>
+    </section>
+
+    <section id="menu" class="py-24 relative z-10">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-4xl font-bold mb-4">Notre <span class="text-primary">Menu</span></h2>
+                <div class="w-20 h-1 bg-primary mx-auto rounded"></div>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-4 mb-12 fade-in" id="menu-tabs">
+                </div>
+
+            <div id="menu-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                </div>
+        </div>
+    </section>
+
+    <section id="visitors" class="py-24 bg-dark/50 relative z-10">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-4xl font-bold mb-4">Liste des <span class="text-primary">Visiteurs</span></h2>
+                <p class="text-gray-400">Rejoignez notre communauté en direct.</p>
+            </div>
+
+            <div class="glass max-w-5xl mx-auto p-6 fade-in">
+                <div class="overflow-x-auto table-scroll">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-white/10 text-primary">
+                                <th class="p-4 font-semibold">Prénom</th>
+                                <th class="p-4 font-semibold">Nom</th>
+                                <th class="p-4 font-semibold">Date</th>
+                                <th class="p-4 font-semibold">Heure</th>
+                            </tr>
+                        </thead>
+                        <tbody id="visitor-list" class="divide-y divide-white/5">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="glass mt-12 py-8 text-center border-b-0 border-x-0 rounded-none rounded-t-3xl">
+        <p class="text-gray-400">© 2026 Snack Restaurant Le Délice. Tarfaya, Morocco.</p>
+    </footer>
+
+    <script>
+        // --- DATA ---
+        const menuData = [
+            { cat: 'PLAT', name: 'Un quart de poulet', img: 'https://i.postimg.cc/tRnnhyz8/cuisses-de-poulet-a-la-portugaise.jpg' },
+            { cat: 'PLAT', name: 'Un demi poulet', img: 'https://i.postimg.cc/ZRvHRStF/e1f6f1866aa0a6e03ddca1142299eb11.jpg' },
+            { cat: 'PLAT', name: 'Poulet entier', img: 'https://i.postimg.cc/15mF7QCW/ba99189c664b0fcb00096921f3058fe7.jpg' },
+            { cat: 'PLAT', name: 'Plat viande hachée', img: 'https://i.postimg.cc/d1QvP4bM/bfa79fb03b876fcae15d25027092e416.jpg' },
+            { cat: 'PLAT', name: 'Plat dinde', img: 'https://i.postimg.cc/xjhrtfTp/b010a3bb5961a0e06c7fbff488b1d552.jpg' },
+            { cat: 'PLAT', name: 'Plat escalope', img: 'https://i.postimg.cc/7ZMkZMB3/c59da2f6826be3799d71c69a55f0b642.jpg' },
+            { cat: 'PLAT', name: 'Plat saucisse', img: 'https://i.postimg.cc/rwpBqXrw/6fab3c2b72b27380e1af24692888c5ee.jpg' },
+            { cat: 'PLAT', name: 'Plat mixte', img: 'https://i.postimg.cc/T2gWfh8V/7a6520ae4d2b8386aca14962aaa851c5.jpg' },
+            { cat: 'TACOS', name: 'Tacos dinde', img: 'https://i.postimg.cc/5tzfLYSw/8a427b668f2374794d5c965ce8f8ab84.jpg' },
+            { cat: 'TACOS', name: 'Tacos viande hachée', img: 'https://i.postimg.cc/KvVXfcjh/54fe0cac26c292cab77fd077dd5cf7bb.jpg' },
+            { cat: 'TACOS', name: 'Tacos escalope', img: 'https://i.postimg.cc/g2kDx3dg/56dc2bc7b8cdcb8cd940264003179a90.jpg' },
+            { cat: 'TACOS', name: 'Tacos mixte', img: 'https://i.postimg.cc/qq1NShYF/7c16ad2874bff5b81c70eba85695942d.jpg' },
+            { cat: 'TACOS', name: 'Tacos charcuterie', img: 'https://i.postimg.cc/vBNRKGh8/15724c6ae1cb8007a5837feb73073c8e.jpg' },
+            { cat: 'SALADE', name: 'Salade marocaine', img: 'https://i.postimg.cc/tC1ZNbtc/salade-marocaine-vegetarienne-640x480-1.jpg' },
+            { cat: 'SALADE', name: 'Salade niçoise', img: 'https://i.postimg.cc/Yqk9f3vT/bf0052b6e6b41589ea24690cdee5d9b0.jpg' },
+            { cat: 'SALADE', name: 'Salade de chef', img: 'https://i.postimg.cc/ncRJjYB2/3714760464ae47708edb4e60559867df.jpg' },
+            { cat: 'COSAMIA', name: 'Cosamia poulet', img: 'https://i.postimg.cc/2yNxYFhN/02726ff131ba00c262f4be0201e2e948.jpg' },
+            { cat: 'COSAMIA', name: 'Cosamia viande hachée', img: 'https://i.postimg.cc/2yNxYFhN/02726ff131ba00c262f4be0201e2e948.jpg' },
+            { cat: 'COSAMIA', name: 'Cosamia mixte', img: 'https://i.postimg.cc/HL7sffmg/In-Shot-20260219-142010797.jpg' },
+            { cat: 'COSAMIA', name: 'Cosamia charcuterie', img: 'https://i.postimg.cc/pTRbq7X4/In-Shot-20260219-142159962.jpg' },
+            { cat: 'SANDWICH', name: 'Sandwich saucisse', img: 'https://i.postimg.cc/PqPscZmQ/6bcaa7b9c933da8ed954d924e2398706.jpg' },
+            { cat: 'SANDWICH', name: 'Sandwich poulet', img: 'https://i.postimg.cc/NMXFHLf3/3e0515b662fad4afcc7392c6a107daad.jpg' },
+            { cat: 'SANDWICH', name: 'Sandwich escalope', img: 'https://i.postimg.cc/MpXWBXsx/In-Shot-20260219-162338831.jpg' },
+            { cat: 'SANDWICH', name: 'Sandwich viande hachée', img: 'https://i.postimg.cc/cJNbSbtp/In-Shot-20260219-162605694.jpg' },
+            { cat: 'SANDWICH', name: 'Sandwich thon', img: 'https://i.postimg.cc/J0cbjpzR/6988d0b8c7e799817229c895c2b4604a.jpg' },
+            { cat: 'SANDWICH', name: 'Sandwich mixte', img: 'https://i.postimg.cc/90tnzt3T/15dcd891455be9e21401cb0cb14295f8.jpg' },
+            { cat: 'PIZZA', name: 'Pizza viande hachée', img: 'https://i.postimg.cc/fWfCtfqP/b8b215a0-2128-497a-ba18-4322298039fb.jpg' },
+            { cat: 'PIZZA', name: 'Pizza poulet', img: 'https://i.postimg.cc/65dhJLnv/Pizza-au-poulet-barbecue.jpg' },
+            { cat: 'PIZZA', name: 'Pizza fruit de mer', img: 'https://i.postimg.cc/7LczTfSP/pizza-aux-fruits-de-mer.jpg' },
+            { cat: 'PIZZA', name: 'Pizza 4 saison', img: 'https://i.postimg.cc/DzgXBxVX/4-saisons-decoupe-mosaique-pizza.jpg' },
+            { cat: 'PIZZA', name: 'Pizza margarita', img: 'https://i.postimg.cc/854xkQq2/ed3fcec7-7994-426d-a5e4-a24be5a95afd-pizza-recipe-main-(1).jpg' },
+            { cat: 'PIZZA', name: 'Pizza vegetarian', img: 'https://i.postimg.cc/g2bs7t7M/Vegetarian-Pizza-with-Caramelized-Onions-Mushrooms-Jalapeno-FI.jpg' },
+            { cat: 'PIZZA', name: 'Pizza thon', img: 'https://i.postimg.cc/WzFR5Yy4/pizza-thon-creme-fraiche-500x500.jpg' },
+            { cat: 'BURGER', name: 'Burger poulet', img: 'https://i.postimg.cc/J7S4mkZN/LUMA-rezept-crispy-chicken-burger-007-1.jpg' },
+            { cat: 'BURGER', name: 'Classique burger', img: 'https://i.postimg.cc/13sS5ctG/i91705-hamburger.jpg' },
+            { cat: 'BURGER', name: 'Burger mixte', img: 'https://i.postimg.cc/3wqzpgKP/burger-mixte-boeuf-poulet-pane-double-fromage-cheddar-roquette-mayonnaise-tranches-tomates-frites-44.jpg' },
+            { cat: 'SPÉCIAL', name: 'Couscous (chaque vendredi)', img: 'https://i.postimg.cc/Dy5jLq6d/Couscous-530x-2x-1.jpg' }
+        ];
+
+        const categories = ['TOUT', 'PLAT', 'TACOS', 'SALADE', 'COSAMIA', 'SANDWICH', 'PIZZA', 'BURGER', 'SPÉCIAL'];
+
+        // --- REGISTRATION SYSTEM ---
+        const modal = document.getElementById('registration-modal');
+        const form = document.getElementById('reg-form');
+        const tbody = document.getElementById('visitor-list');
+
+        // Load visitors from local storage
+        let visitors = JSON.parse(localStorage.getItem('leDeliceVisitors')) || [];
+
+        function renderVisitors() {
+            tbody.innerHTML = '';
+            visitors.forEach((v, index) => {
+                const tr = document.createElement('tr');
+                tr.className = `hover:bg-white/5 transition-colors duration-300 fade-in visible`;
+                tr.style.animationDelay = `${index * 0.1}s`;
+                tr.innerHTML = `
+                    <td class="p-4 border-b border-white/5">${v.fname}</td>
+                    <td class="p-4 border-b border-white/5">${v.lname}</td>
+                    <td class="p-4 border-b border-white/5">${v.date}</td>
+                    <td class="p-4 border-b border-white/5">${v.time}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const fname = document.getElementById('fname').value;
+            const lname = document.getElementById('lname').value;
+            
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('fr-FR');
+            const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute:'2-digit', second:'2-digit' });
+
+            visitors.unshift({ fname, lname, date: dateStr, time: timeStr });
+            localStorage.setItem('leDeliceVisitors', JSON.stringify(visitors));
+            
+            // Fade + Scale Out Animation
+            modal.classList.add('modal-hide');
+            setTimeout(() => {
+                document.body.classList.remove('modal-open');
+                modal.style.display = 'none';
+                renderVisitors();
+            }, 600);
+        });
+
+        // Initialize table on load
+        renderVisitors();
+
+        // --- MENU SYSTEM ---
+        const menuTabs = document.getElementById('menu-tabs');
+        const menuGrid = document.getElementById('menu-grid');
+
+        function renderTabs() {
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = `px-6 py-2 rounded-full font-semibold transition-all duration-300 ${cat === 'TOUT' ? 'bg-primary text-white shadow-lg shadow-primary/40' : 'glass text-gray-300 hover:text-white hover:bg-white/10'}`;
+                btn.textContent = cat;
+                btn.onclick = () => filterMenu(cat, btn);
+                menuTabs.appendChild(btn);
+            });
+        }
+
+        function filterMenu(filterCat, activeBtn) {
+            // Update active button styles
+            Array.from(menuTabs.children).forEach(btn => {
+                btn.className = 'px-6 py-2 rounded-full font-semibold transition-all duration-300 glass text-gray-300 hover:text-white hover:bg-white/10';
+            });
+            activeBtn.className = 'px-6 py-2 rounded-full font-semibold transition-all duration-300 bg-primary text-white shadow-lg shadow-primary/40';
+
+            // Filter and animate cards
+            menuGrid.innerHTML = '';
+            const filtered = filterCat === 'TOUT' ? menuData : menuData.filter(item => item.cat === filterCat);
+            
+            filtered.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'menu-card glass rounded-2xl overflow-hidden opacity-0 transform translate-y-10';
+                card.style.transition = `all 0.5s ease ${index * 0.05}s`;
+                
+                card.innerHTML = `
+                    <div class="h-48 overflow-hidden relative img-container">
+                        <img src="${item.img}" alt="${item.name}" class="w-full h-full object-cover" onload="this.parentElement.classList.add('loaded')">
+                        <div class="absolute inset-0 bg-gradient-to-t from-dark/90 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                            <span class="text-xs font-bold bg-primary px-2 py-1 rounded text-white uppercase">${item.cat}</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">${item.name}</h3>
+                        <div class="flex justify-between items-center mt-4">
+                            <button class="text-primary hover:text-white transition-colors">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                menuGrid.appendChild(card);
+
+                // Trigger entrance animation slightly after DOM insertion
+                setTimeout(() => {
+                    card.classList.remove('opacity-0', 'translate-y-10');
+                }, 50);
+            });
+        }
+
+        renderTabs();
+        filterMenu('TOUT', menuTabs.firstElementChild);
+
+        // --- GLOBAL ANIMATIONS & EFFECTS ---
+
+        // 1. Text Typing Effect
+        const textToType = "Le Délice";
+        const typingElement = document.getElementById('typing-text');
+        let typeIndex = 0;
+        
+        function typeWriter() {
+            if (typeIndex < textToType.length) {
+                typingElement.innerHTML += textToType.charAt(typeIndex);
+                typeIndex++;
+                setTimeout(typeWriter, 150);
+            } else {
+                typingElement.style.borderRight = "none"; // remove cursor
+            }
+        }
+        setTimeout(typeWriter, 1000);
+
+        // 2. Scroll Reveal & Scroll Progress
+        const fadeElements = document.querySelectorAll('.fade-in');
+        const navbar = document.getElementById('navbar');
+        const progressBar = document.getElementById('scroll-progress');
+
+        const scrollObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        fadeElements.forEach(el => scrollObserver.observe(el));
+
+        window.addEventListener('scroll', () => {
+            // Navbar Glassmorphism on scroll
+            if (window.scrollY > 50) navbar.classList.add('scrolled');
+            else navbar.classList.remove('scrolled');
+
+            // Scroll Progress Bar
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            progressBar.style.width = (winScroll / height) * 100 + "%";
+        });
+        
+    </script>
+</body>
+</html>

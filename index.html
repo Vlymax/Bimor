@@ -174,10 +174,10 @@
             </div>
 
             <div class="flex flex-wrap justify-center gap-4 mb-12 fade-in" id="menu-tabs">
-                </div>
+            </div>
 
             <div id="menu-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                </div>
+            </div>
         </div>
     </section>
 
@@ -185,7 +185,7 @@
         <div class="container mx-auto px-6">
             <div class="text-center mb-16 fade-in">
                 <h2 class="text-4xl font-bold mb-4">Liste des <span class="text-primary">Visiteurs</span></h2>
-                <p class="text-gray-400">Rejoignez notre communauté en direct.</p>
+                <p class="text-gray-400">Rejoignez notre communauté en direct (Dernières 24 Heures).</p>
             </div>
 
             <div class="glass max-w-5xl mx-auto p-6 fade-in">
@@ -200,7 +200,7 @@
                             </tr>
                         </thead>
                         <tbody id="visitor-list" class="divide-y divide-white/5">
-                            </tbody>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -211,7 +211,23 @@
         <p class="text-gray-400">© 2026 Snack Restaurant Le Délice. Tarfaya, Morocco.</p>
     </footer>
 
-    <script>
+    <script type="module">
+        // --- FIREBASE INITIALIZATION (v10 Modular SDK) ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, where, onSnapshot, orderBy, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyDb2A9KAdKtPA34IImq4GWmzUwCkKOXwNk",
+          authDomain: "vlymax.firebaseapp.com",
+          projectId: "vlymax",
+          storageBucket: "vlymax.firebasestorage.app",
+          messagingSenderId: "825269785341",
+          appId: "1:825269785341:web:97a87c543e31972d94e494"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         // --- DATA ---
         const menuData = [
             { cat: 'PLAT', name: 'Un quart de poulet', img: 'https://i.postimg.cc/tRnnhyz8/cuisses-de-poulet-a-la-portugaise.jpg' },
@@ -260,48 +276,83 @@
         const form = document.getElementById('reg-form');
         const tbody = document.getElementById('visitor-list');
 
-        // Load visitors from local storage
-        let visitors = JSON.parse(localStorage.getItem('leDeliceVisitors')) || [];
+        // Check if user has already registered using LocalStorage
+        const hasRegistered = localStorage.getItem('hasRegisteredLeDelice');
+        if (hasRegistered === 'true') {
+            modal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+        }
 
-        function renderVisitors() {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fname = document.getElementById('fname').value;
+            const lname = document.getElementById('lname').value;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            
+            submitBtn.textContent = 'Connexion...';
+            submitBtn.disabled = true;
+            
+            try {
+                // Add visitor to Firestore with server timestamp
+                await addDoc(collection(db, "visitors"), {
+                    fname: fname,
+                    lname: lname,
+                    timestamp: serverTimestamp()
+                });
+                
+                // Set LocalStorage so they are not bothered again
+                localStorage.setItem('hasRegisteredLeDelice', 'true');
+                
+                // Fade + Scale Out Animation
+                modal.classList.add('modal-hide');
+                setTimeout(() => {
+                    document.body.classList.remove('modal-open');
+                    modal.style.display = 'none';
+                }, 600);
+            } catch (error) {
+                console.error("Error adding document: ", error);
+                submitBtn.textContent = 'Erreur. Réessayer.';
+                submitBtn.disabled = false;
+            }
+        });
+
+        // --- 24-HOUR REAL-TIME TABLE SYSTEM ---
+        const visitorsRef = collection(db, "visitors");
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+        // Query: Only visitors from the last 24 hours, ordered newest to oldest
+        const q = query(
+            visitorsRef, 
+            where("timestamp", ">=", Timestamp.fromDate(twentyFourHoursAgo)),
+            orderBy("timestamp", "desc")
+        );
+
+        onSnapshot(q, (snapshot) => {
             tbody.innerHTML = '';
-            visitors.forEach((v, index) => {
+            let index = 0;
+            
+            snapshot.forEach((doc) => {
+                const v = doc.data();
+                
+                // Handle pending writes where serverTimestamp hasn't resolved yet
+                const jsDate = v.timestamp ? v.timestamp.toDate() : new Date();
+                
+                const dateStr = jsDate.toLocaleDateString('fr-FR');
+                const timeStr = jsDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute:'2-digit', second:'2-digit' });
+
                 const tr = document.createElement('tr');
                 tr.className = `hover:bg-white/5 transition-colors duration-300 fade-in visible`;
                 tr.style.animationDelay = `${index * 0.1}s`;
                 tr.innerHTML = `
                     <td class="p-4 border-b border-white/5">${v.fname}</td>
                     <td class="p-4 border-b border-white/5">${v.lname}</td>
-                    <td class="p-4 border-b border-white/5">${v.date}</td>
-                    <td class="p-4 border-b border-white/5">${v.time}</td>
+                    <td class="p-4 border-b border-white/5">${dateStr}</td>
+                    <td class="p-4 border-b border-white/5">${timeStr}</td>
                 `;
                 tbody.appendChild(tr);
+                index++;
             });
-        }
-
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const fname = document.getElementById('fname').value;
-            const lname = document.getElementById('lname').value;
-            
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('fr-FR');
-            const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute:'2-digit', second:'2-digit' });
-
-            visitors.unshift({ fname, lname, date: dateStr, time: timeStr });
-            localStorage.setItem('leDeliceVisitors', JSON.stringify(visitors));
-            
-            // Fade + Scale Out Animation
-            modal.classList.add('modal-hide');
-            setTimeout(() => {
-                document.body.classList.remove('modal-open');
-                modal.style.display = 'none';
-                renderVisitors();
-            }, 600);
         });
-
-        // Initialize table on load
-        renderVisitors();
 
         // --- MENU SYSTEM ---
         const menuTabs = document.getElementById('menu-tabs');
@@ -318,13 +369,11 @@
         }
 
         function filterMenu(filterCat, activeBtn) {
-            // Update active button styles
             Array.from(menuTabs.children).forEach(btn => {
                 btn.className = 'px-6 py-2 rounded-full font-semibold transition-all duration-300 glass text-gray-300 hover:text-white hover:bg-white/10';
             });
             activeBtn.className = 'px-6 py-2 rounded-full font-semibold transition-all duration-300 bg-primary text-white shadow-lg shadow-primary/40';
 
-            // Filter and animate cards
             menuGrid.innerHTML = '';
             const filtered = filterCat === 'TOUT' ? menuData : menuData.filter(item => item.cat === filterCat);
             
@@ -351,7 +400,6 @@
                 `;
                 menuGrid.appendChild(card);
 
-                // Trigger entrance animation slightly after DOM insertion
                 setTimeout(() => {
                     card.classList.remove('opacity-0', 'translate-y-10');
                 }, 50);
@@ -362,8 +410,6 @@
         filterMenu('TOUT', menuTabs.firstElementChild);
 
         // --- GLOBAL ANIMATIONS & EFFECTS ---
-
-        // 1. Text Typing Effect
         const textToType = "Le Délice";
         const typingElement = document.getElementById('typing-text');
         let typeIndex = 0;
@@ -374,12 +420,11 @@
                 typeIndex++;
                 setTimeout(typeWriter, 150);
             } else {
-                typingElement.style.borderRight = "none"; // remove cursor
+                typingElement.style.borderRight = "none";
             }
         }
         setTimeout(typeWriter, 1000);
 
-        // 2. Scroll Reveal & Scroll Progress
         const fadeElements = document.querySelectorAll('.fade-in');
         const navbar = document.getElementById('navbar');
         const progressBar = document.getElementById('scroll-progress');
@@ -395,11 +440,9 @@
         fadeElements.forEach(el => scrollObserver.observe(el));
 
         window.addEventListener('scroll', () => {
-            // Navbar Glassmorphism on scroll
             if (window.scrollY > 50) navbar.classList.add('scrolled');
             else navbar.classList.remove('scrolled');
 
-            // Scroll Progress Bar
             const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
             const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
             progressBar.style.width = (winScroll / height) * 100 + "%";
